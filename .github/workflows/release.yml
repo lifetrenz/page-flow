@@ -1,0 +1,41 @@
+name: Publish installer release
+
+# Pushing a tag v<version> publishes releases/v<version>/* as the GitHub Release for that tag.
+# Each release folder holds the versioned installer, a PageFlow-Setup.exe copy and their .sha256
+# files, so /releases/latest/download/PageFlow-Setup.exe always serves the newest installer.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the release folder and checksums
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          dir="releases/$TAG"
+          test -f "$dir/PageFlow-Setup.exe" || { echo "missing $dir/PageFlow-Setup.exe"; exit 1; }
+          test -f "$dir/PageFlow-Setup-${TAG#v}.exe" || { echo "missing $dir/PageFlow-Setup-${TAG#v}.exe"; exit 1; }
+          cd "$dir"
+          for f in *.sha256; do tr -d '\r' < "$f" | sed 's/ \*/  /' | sha256sum -c -; done
+
+      - name: Publish the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Page-Flow Agent ${{ github.ref_name }}
+          files: releases/${{ github.ref_name }}/*
+          make_latest: true
+          body: |
+            Windows installer for the Page-Flow Agent ${{ github.ref_name }}.
+
+            Download **PageFlow-Setup.exe** (same file as the versioned one) and check it against
+            its `.sha256`. The installer is not code-signed yet; see the README for the
+            SmartScreen prompt.
