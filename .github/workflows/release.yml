@@ -37,5 +37,5 @@ jobs:
             Windows installer for the Page-Flow Agent ${{ github.ref_name }}.
 
             Download **PageFlow-Setup.exe** (same file as the versioned one) and check it against
-            its `.sha256`. The installer is not code-signed yet; see the README for the
-            SmartScreen prompt.
+            its `.sha256`. Signed by DWISE Healthcare IT Solutions Private Limited; see the README
+            for the SmartScreen prompt while the certificate builds reputation.

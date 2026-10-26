@@ -25,8 +25,10 @@ Every version, with its release notes and checksum, is on the
 ## Install
 
 1. Run `PageFlow-Setup.exe`.
-2. The installer is not code-signed yet, so Windows SmartScreen may show "Windows protected your PC".
-   Choose **More info**, then **Run anyway**, after checking the file (see *Verify the download*).
+2. The installer and the agent are signed by **DWISE Healthcare IT Solutions Private Limited**. While
+   the certificate is still building its reputation with Microsoft, Windows SmartScreen may show
+   "Windows protected your PC" with that publisher name. Choose **More info**, then **Run anyway**,
+   after checking the file (see *Verify the download*).
 3. During setup, set the **admin secret**. Your IT team uses it to open the agent's admin console. It
    is separate from the pairing token the web application uses.
 4. Page-Flow starts and shows an icon in the system tray. It starts again when you sign in.
@@ -48,7 +50,9 @@ Each release includes a `.sha256` file. In PowerShell:
 Get-FileHash .\PageFlow-Setup.exe -Algorithm SHA256
 ```
 
-The hash must match the one in `PageFlow-Setup.exe.sha256` on the release page.
+The hash must match the one in `PageFlow-Setup.exe.sha256` on the release page. To check the
+signature, open the file's **Properties → Digital Signatures**: the signer must be
+DWISE HEALTHCARE ITSOLUTIONS PRIVATE LIMITED.
 
 ## Privacy
 
@@ -62,4 +66,4 @@ Windows **Settings → Apps → Installed apps → Page-Flow Agent → Uninstall
 
 ---
 
-© Lifetrenz. All rights reserved.
+Lifetrenz Page-Flow Agent. © DWISE Healthcare IT Solutions Private Limited. All rights reserved.
