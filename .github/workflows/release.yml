@@ -3,6 +3,7 @@ name: Publish installer release
 # Pushing a tag v<version> publishes releases/v<version>/* as the GitHub Release for that tag.
 # Each release folder holds the versioned installer, a PageFlow-Setup.exe copy and their .sha256
 # files, so /releases/latest/download/PageFlow-Setup.exe always serves the newest installer.
+# An optional NOTES.md in the folder is added below the fixed release text.
 on:
   push:
     tags: ['v*']
@@ -13,6 +14,13 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TEXT: |
+        Windows installer for the Page-Flow Agent ${{ github.ref_name }}.
+
+        Download **PageFlow-Setup.exe** (same file as the versioned one) and check it against
+        its `.sha256`. Signed by DWISE Healthcare IT Solutions Private Limited; see the README
+        for the SmartScreen prompt while the certificate builds reputation.
     steps:
       - uses: actions/checkout@v4
 
@@ -27,15 +35,27 @@ jobs:
           cd "$dir"
           for f in *.sha256; do tr -d '\r' < "$f" | sed 's/ \*/  /' | sha256sum -c -; done
 
+      - name: Add the release notes, if any
+        id: notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          notes="releases/$TAG/NOTES.md"
+          if [ -f "$notes" ]; then
+            body="$RUNNER_TEMP/release-body.md"
+            { printf '%s\n' "$RELEASE_TEXT"; cat "$notes"; } > "$body"
+            echo "path=$body" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish the GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: Page-Flow Agent ${{ github.ref_name }}
-          files: releases/${{ github.ref_name }}/*
+          files: |
+            releases/${{ github.ref_name }}/*.exe
+            releases/${{ github.ref_name }}/*.sha256
           make_latest: true
-          body: |
-            Windows installer for the Page-Flow Agent ${{ github.ref_name }}.
-
-            Download **PageFlow-Setup.exe** (same file as the versioned one) and check it against
-            its `.sha256`. Signed by DWISE Healthcare IT Solutions Private Limited; see the README
-            for the SmartScreen prompt while the certificate builds reputation.
+          # body_path wins when set; without NOTES.md it is empty and body is used, as before.
+          body_path: ${{ steps.notes.outputs.path }}
+          body: ${{ env.RELEASE_TEXT }}
